@@ -13,6 +13,7 @@ import enum
 class Axis(enum.Enum):
     X_AXIS = 0
     Y_AXIS = 1
+    UNKNOWN = 2
 
 
 class FiberReading(object):
