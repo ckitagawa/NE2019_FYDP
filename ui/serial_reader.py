@@ -69,27 +69,28 @@ class SerialDataSource(object):
 
     def packet_service(self):
         while not self.stop_event.is_set():
-            line = self.readline()
+            line = self.readline().decode('utf-8')
             if not line:
                 continue
-            l = len(line)
-            if l < 6:
-                continue
             logging.info('{}'.format(line))
+            ints = line.split(',')
+            l = len(ints)
+            if l < 3:
+                continue
 
-            axis_char = line[0:1]
+            axis_char = int(ints[0])
             axis = fiber_reading.Axis.UNKNOWN
-            if (axis_char == 'x'):
+            if (axis_char == 0):
                 axis = fiber_reading.Axis.X_AXIS
-            elif (axis_char == 'y'):
+            elif (axis_char == 1):
                 axis = fiber_reading.Axis.Y_AXIS
 
-            index = int.from_bytes(line[1:2], 'little')
-            callib = int.from_bytes(line[2:6], 'little')
+            index = int(ints[1])
+            callib = int(ints[2])
 
             reading = fiber_reading.FiberReading(axis, index, callib)
-            for i in range(6, l, 4):
-                reading.AddData(int.from_bytes(line[i:i + 4], 'little'))
+            for i in range(3, l):
+                reading.AddData(int(ints[i]))
             self.q.put(reading)
 
     def readline(self, eol=b'\n'):
@@ -108,6 +109,4 @@ class SerialDataSource(object):
                 line += read_char
                 if line[-leneol:] == eol:
                     break
-            else:
-                break
         return bytes(line)
