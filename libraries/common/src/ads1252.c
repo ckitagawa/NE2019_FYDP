@@ -4,6 +4,8 @@
 
 #include "ads1252.h"
 
+#include "delay.h"
+
 #define NUM_ADS1252_BITS 24
 
 void ads1252_init(const ADS1252Config *cfg) {
@@ -25,8 +27,7 @@ void ads1252_enable(const ADS1252Config *cfg) {
 
 void ads1252_reset(const ADS1252Config *cfg) {
   gpio_set_state(&cfg->sclk, GPIO_STATE_HIGH);
-  for (volatile uint32_t x = 0; x < 720 * 100; ++x) {
-  }
+  delay_us(720);
 }
 
 void ads1252_read(const ADS1252Config *cfg, int32_t *buf) {
@@ -43,22 +44,16 @@ void ads1252_read(const ADS1252Config *cfg, int32_t *buf) {
   do {
     gpio_get_state(&cfg->data, &rdy);
   } while (rdy != GPIO_STATE_HIGH);
-  for (volatile uint32_t x = 0; x < 1500; ++x) {
-  }
+  delay_us(15);
 
-  // TODO(ckitagawa) Add delay(s)?
   for (uint16_t i = 0; i < NUM_ADS1252_BITS; ++i) {
     gpio_set_state(&cfg->sclk, GPIO_STATE_HIGH);
-    for (volatile uint32_t x = 0; x < 100; ++x) {
-    }
+    delay_us(1);
     gpio_get_state(&cfg->data, &bit);
     *buf <<= 0x01;
     *buf |= bit;
-    for (volatile uint32_t x = 0; x < 100; ++x) {
-    }
     gpio_set_state(&cfg->sclk, GPIO_STATE_LOW);
-    for (volatile uint32_t x = 0; x < 200; ++x) {
-    }
+    delay_us(1);
   }
   *buf <<= 8;
   *buf >>= 8;

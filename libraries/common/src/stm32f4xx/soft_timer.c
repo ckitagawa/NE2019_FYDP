@@ -126,9 +126,8 @@ static void prv_init_periph(void) {
   RCC_ClocksTypeDef clocks;
   RCC_GetClocksFreq(&clocks);
 
-  LOG_DEBUG("%ld\n", clocks.PCLK1_Frequency);
   TIM_TimeBaseInitTypeDef timer_init = {
-    .TIM_Prescaler = (clocks.PCLK1_Frequency / 1000000) - 1,  // 1 Mhz
+    .TIM_Prescaler = (clocks.PCLK2_Frequency / 1000000) - 1,  // 1 Mhz
     .TIM_CounterMode = TIM_CounterMode_Up,
     .TIM_Period = UINT32_MAX,
     .TIM_ClockDivision = TIM_CKD_DIV1,
