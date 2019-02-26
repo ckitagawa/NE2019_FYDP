@@ -12,6 +12,7 @@
 #include "gpio.h"  // General Purpose I/O control.
 #include "interrupt.h"
 #include "soft_timer.h"
+#include "stm32f4xx_rcc.h"
 
 // Depending on which board you are working with you will need to (un)comment
 // the relevant block of GPIO pins. Generally these would be in a configuration
@@ -28,7 +29,10 @@ static const GpioAddress leds[] = {
 
 int main(void) {
   // Enable various peripherals
-  printf("Hello\n");
+  printf("Sys clock source %u\n", RCC_GetSYSCLKSource());
+  RCC_ClocksTypeDef clocks;
+  RCC_GetClocksFreq(&clocks);
+  printf("%u\n", clocks.SYSCLK_Frequency);
   gpio_init();
   // interrupt_init();
   // soft_timer_init();
@@ -72,10 +76,11 @@ int main(void) {
   ADS1252Config cfg = { .data = { .port = GPIO_PORT_A, .pin = 11 },
                         .sclk = { .port = GPIO_PORT_A, .pin = 10 } };
   ads1252_init(&cfg);
-  volatile uint32_t res = 0;
+  ads1252_reset(&cfg);
+  volatile int32_t res = 0;
   while (true) {
     ads1252_read(&cfg, &res);
-    printf("%d\n", res);
+    printf("%ld\n", res);
   }
 
   return 0;

@@ -20,6 +20,6 @@ void ads1252_enable(const ADS1252Config *cfg);
 
 void ads1252_reset(const ADS1252Config *cfg);
 
-void ads1252_read(const ADS1252Config *cfg, uint32_t *buf);
+void ads1252_read(const ADS1252Config *cfg, int32_t *buf);
 
 #endif  // ADS1252_H

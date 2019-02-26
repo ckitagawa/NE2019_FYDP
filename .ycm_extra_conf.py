@@ -23,6 +23,7 @@ BASE_FLAGS = [
     '-I' + os.getcwd() + '/libraries/common/inc/stm32f4xx/',
     '-I' + os.getcwd() + '/libraries/stm32f4xx/inc/',
     '-I' + os.getcwd() + '/projects/fydp/inc/',
+    '-D STM32F410xx'
 ]
 
 SOURCE_EXTENSIONS = ['.cpp', '.cxx', '.cc', '.c', '.m', '.mm']

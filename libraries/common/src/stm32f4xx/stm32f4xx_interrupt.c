@@ -12,9 +12,9 @@
 
 // From the User Manual.
 // Channels are NVIC channels which handle prioritization of interupts.
-#define NUM_STM32F0XX_INTERRUPT_CHANNELS 32
+#define NUM_STM32F0XX_INTERRUPT_CHANNELS 64
 // Lines are external interrupt channels often grouped to a single interrupt.
-#define NUM_STM32F0XX_INTERRUPT_LINES 32
+#define NUM_STM32F0XX_INTERRUPT_LINES 64
 
 static InterruptPriority s_stm32f4xx_interrupt_priorities[NUM_STM32F0XX_INTERRUPT_CHANNELS];
 
@@ -39,6 +39,7 @@ StatusCode stm32f4xx_interrupt_nvic_enable(uint8_t irq_channel, InterruptPriorit
   NVIC_InitTypeDef init_struct = {
     .NVIC_IRQChannel = irq_channel,
     .NVIC_IRQChannelPreemptionPriority = priority,
+    .NVIC_IRQChannelSubPriority = 0x00,
     .NVIC_IRQChannelCmd = ENABLE,
   };
 
@@ -75,7 +76,7 @@ StatusCode stm32f4xx_interrupt_exti_trigger(uint8_t line) {
   return STATUS_CODE_OK;
 }
 
-StatusCode stm32f0xx_interrupt_exti_get_pending(uint8_t line, uint8_t *pending_bit) {
+StatusCode stm32f4xx_interrupt_exti_get_pending(uint8_t line, uint8_t *pending_bit) {
   if (line >= NUM_STM32F0XX_INTERRUPT_LINES) {
     return status_code(STATUS_CODE_INVALID_ARGS);
   }
@@ -84,7 +85,7 @@ StatusCode stm32f0xx_interrupt_exti_get_pending(uint8_t line, uint8_t *pending_b
   return STATUS_CODE_OK;
 }
 
-StatusCode stm32f0xx_interrupt_exti_clear_pending(uint8_t line) {
+StatusCode stm32f4xx_interrupt_exti_clear_pending(uint8_t line) {
   if (line >= NUM_STM32F0XX_INTERRUPT_LINES) {
     return status_code(STATUS_CODE_INVALID_ARGS);
   }
@@ -93,7 +94,7 @@ StatusCode stm32f0xx_interrupt_exti_clear_pending(uint8_t line) {
   return STATUS_CODE_OK;
 }
 
-StatusCode stm32f0xx_interrupt_exti_mask_set(uint8_t line, bool masked) {
+StatusCode stm32f4xx_interrupt_exti_mask_set(uint8_t line, bool masked) {
   if (line >= NUM_STM32F0XX_INTERRUPT_LINES) {
     return status_code(STATUS_CODE_INVALID_ARGS);
   }
