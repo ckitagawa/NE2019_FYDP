@@ -8,10 +8,11 @@
 
 import logging
 import threading
-import queue
 import serial
 import serial.tools.list_ports
 import fiber_reading
+
+from collections import deque
 
 
 def select_device():
@@ -40,10 +41,9 @@ class SerialDataSource(object):
     """A datasource that reads from a bound serial port interface."""
 
     def __init__(self, device):
-        self.q = queue.Queue()
+        self.q = deque()
         self.ser = serial.Serial(device, 115200)
         self.running = False
-        self.stop_event = threading.Event()
         self.t = None
 
     def start(self):
@@ -56,26 +56,24 @@ class SerialDataSource(object):
 
     def stop(self):
         self.running = False
-        self.stop_event.set()
         self.t.join()
         self.t = None
-        self.stop_event.clear()
 
     def get_packet(self):
-        try:
-            return self.q.get(block=False, timeout=1)
-        except queue.Empty:
-            return None
+        if self.q:
+            return self.q.popleft()
 
     def packet_service(self):
-        while not self.stop_event.is_set():
-            line = self.readline().decode('utf-8')
+        # Discard the first packet
+        self.ser.readline().decode('ascii')
+        while True:
+            line = self.ser.readline().decode('ascii')
             if not line:
                 continue
-            logging.info('{}'.format(line))
             ints = line.split(',')
             l = len(ints)
             if l < 3:
+                print(line)
                 continue
 
             axis_char = int(ints[0])
@@ -91,22 +89,4 @@ class SerialDataSource(object):
             reading = fiber_reading.FiberReading(axis, index, callib)
             for i in range(3, l):
                 reading.AddData(int(ints[i]))
-            self.q.put(reading)
-
-    def readline(self, eol=b'\n'):
-        """Readline with arbitrary EOL delimiter
-        Args:
-            ser: Serial device to read
-            eol: Bytes to use a EOL delimiter
-        Returns:
-            All data read from the device until the EOL delimiter was found.
-        """
-        leneol = len(eol)
-        line = bytearray()
-        while True:
-            read_char = self.ser.read(1)
-            if read_char:
-                line += read_char
-                if line[-leneol:] == eol:
-                    break
-        return bytes(line)
+            self.q.append(reading)

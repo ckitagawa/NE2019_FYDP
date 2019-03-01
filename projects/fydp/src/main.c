@@ -15,7 +15,8 @@
 #include "soft_timer.h"
 #include "stm32f4xx_rcc.h"
 
-#define SAMPLES 5
+#define DISCARD 6
+#define SAMPLES DISCARD + 7
 
 // Depending on which board you are working with you will need to (un)comment
 // the relevant block of GPIO pins. Generally these would be in a configuration
@@ -35,6 +36,7 @@ int main(void) {
   interrupt_init();
   soft_timer_init();
   gpio_init();
+  printf("Booting\n");
 
   // DEBUG LED TEST
   //
@@ -100,34 +102,62 @@ int main(void) {
   ads1252_reset(&adc2);
   ads1252_enable(&adc1);
   ads1252_enable(&adc2);
-  // TODO(ckitagawa): Map pins properly
   CD74HCT4067Config pd1 = { .s = { { .port = GPIO_PORT_C, .pin = 4 },
                                    { .port = GPIO_PORT_C, .pin = 5 },
                                    { .port = GPIO_PORT_C, .pin = 6 },
                                    { .port = GPIO_PORT_C, .pin = 7 } } };
-  CD74HCT4067Config pd2;
-  CD74HCT4067Config led1;
-  CD74HCT4067Config led2;
+  CD74HCT4067Config pd2 = { .s = { { .port = GPIO_PORT_C, .pin = 0 },
+                                   { .port = GPIO_PORT_C, .pin = 1 },
+                                   { .port = GPIO_PORT_C, .pin = 2 },
+                                   { .port = GPIO_PORT_C, .pin = 3 } } };
+  CD74HCT4067Config led1 = { .s = { { .port = GPIO_PORT_C, .pin = 8 },
+                                    { .port = GPIO_PORT_C, .pin = 9 },
+                                    { .port = GPIO_PORT_C, .pin = 10 },
+                                    { .port = GPIO_PORT_C, .pin = 11 } } };
+  CD74HCT4067Config led2 = { .s = { { .port = GPIO_PORT_C, .pin = 12 },
+                                    { .port = GPIO_PORT_C, .pin = 13 },
+                                    { .port = GPIO_PORT_C, .pin = 14 },
+                                    { .port = GPIO_PORT_C, .pin = 15 } } };
   cd74hct4067_init(&pd1);
   cd74hct4067_init(&led1);
   cd74hct4067_init(&pd2);
   cd74hct4067_init(&led2);
+  cd74hct4067_set_output(&led2, 11);
 
   // Calibrate
+  printf("Callibrating\n");
   int32_t callibrations[20] = { 0 };
+  int32_t x = 0;
+  int32_t acc = 0;
   for (uint16_t i = 0; i < 10; ++i) {
     cd74hct4067_set_output(&pd1, 9 - i);
     cd74hct4067_set_output(&led1, i);
-    ads1252_read(&adc1, &callibrations[i]);
+    for (uint16_t j = 0; j < SAMPLES; ++j) {
+      ads1252_read(&adc1, &x);
+      if (j >= DISCARD && x < 10000) {
+        acc += x;
+      }
+    }
+    callibrations[i] = acc / (SAMPLES - DISCARD);
   }
+  cd74hct4067_set_output(&led1, 11);
+  acc = 0;
   for (uint16_t i = 0; i < 10; ++i) {
     cd74hct4067_set_output(&pd2, 9 - i);
     cd74hct4067_set_output(&led2, i);
-    ads1252_read(&adc2, &callibrations[i + 10]);
+    for (uint16_t j = 0; j < SAMPLES; ++j) {
+      ads1252_read(&adc2, &x);
+      if (j >= DISCARD && x < 10000) {
+        acc += x;
+      }
+    }
+    callibrations[i + 10] = acc / (SAMPLES - DISCARD + 1);
   }
+  cd74hct4067_set_output(&led2, 11);
 
   // Read
   int32_t reading = { 0 };
+  printf("Running\n");
   while (true) {
     for (uint16_t i = 0; i < 10; ++i) {
       cd74hct4067_set_output(&pd1, 9 - i);
@@ -135,20 +165,29 @@ int main(void) {
       printf("0,%d,%ld", i, callibrations[i]);
       for (uint16_t j = 0; j < SAMPLES; ++j) {
         ads1252_read(&adc1, &reading);
-        printf(",%ld", reading);
+        if (j >= DISCARD) {
+          printf(",%ld", reading);
+        }
       }
       printf("\n");
     }
+    delay_ms(1000);
+    cd74hct4067_set_output(&led1, 11);
+
     for (uint16_t i = 0; i < 10; ++i) {
       cd74hct4067_set_output(&pd2, 9 - i);
       cd74hct4067_set_output(&led2, i);
       printf("1,%d,%ld", i, callibrations[i + 10]);
       for (uint16_t j = 0; j < SAMPLES; ++j) {
         ads1252_read(&adc2, &reading);
-        printf(",%ld", reading);
+        if (j >= DISCARD) {
+          printf(",%ld", reading);
+        }
       }
       printf("\n");
     }
+    cd74hct4067_set_output(&led2, 11);
+    delay_ms(1000);
   }
 
   return 0;

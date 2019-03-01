@@ -37,7 +37,7 @@ F 3 "http://www.ti.com/lit/ds/symlink/ads1251.pdf" H 7600 4750 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L fydp:ECS-2333 X1
+L main-rescue:ECS-2333-fydp X1
 U 1 1 5C35215E
 P 9450 4100
 F 0 "X1" H 9450 4515 50  0000 C CNN
