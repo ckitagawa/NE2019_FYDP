@@ -25,8 +25,8 @@ def fix_bits(packet):
 
 
 def process_packets(sdc):
-    ardata = [random.random() for _ in range(0, 100)]
-    linedata = [random.random() for _ in range(0, 100)]
+    ardata = [0.0] * 100
+    linedata = [0.0] * 100
     flush = False
     cnt = 0
     while True:
@@ -41,11 +41,13 @@ def process_packets(sdc):
         # TODO(drousso): do requisite processing on the packet and write data
         # to ardata and linedata 10x10 array represented as a 100 element array.
         # to flush to the gui set flush = True after processing the packet.
-        x = mean(packet.data) / packet.calibration_value
+        x = mean(packet.data)
+        if packet.calibration_value != 0:
+            x /= packet.calibration_value
         if packet.axis == fiber_reading.Axis.X_AXIS:
             for i in range(0, 10):
                 ardata[10 * packet.index + i] += x
-        else:
+        elif packet.axis == fiber_reading.Axis.Y_AXIS:
             for i in range(0, 10):
                 ardata[i * 10 + packet.index] += x
 
@@ -69,7 +71,7 @@ def main():
     sdc = serial_reader.SerialDataSource(device.device)
     sdc.start()
     while True:
-        process_packets(packet)
+        process_packets(sdc)
     sdc.stop()
 
 

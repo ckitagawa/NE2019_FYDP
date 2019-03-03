@@ -29,6 +29,7 @@ a1.set_title("Force Map")
 data = np.loadtxt("junkdata.txt", delimiter=",")
 im = a1.imshow(data)
 cbar = f.colorbar(im, orientation="horizontal")
+cbar.set_clim(vmin=0, vmax=1)
 
 a2 = f.add_subplot(122)
 x1 = np.arange(5)

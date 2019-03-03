@@ -132,22 +132,26 @@ int main(void) {
   for (uint16_t i = 0; i < 10; ++i) {
     cd74hct4067_set_output(&pd1, 9 - i);
     cd74hct4067_set_output(&led1, i);
+    delay_us(250);
     for (uint16_t j = 0; j < SAMPLES; ++j) {
+      delay_us(100);
       ads1252_read(&adc1, &x);
-      if (j >= DISCARD && x < 10000) {
+      if (j >= DISCARD) {
         acc += x;
       }
     }
-    callibrations[i] = acc / (SAMPLES - DISCARD);
+    callibrations[i] = acc / (SAMPLES - DISCARD + 1);
   }
   cd74hct4067_set_output(&led1, 11);
   acc = 0;
   for (uint16_t i = 0; i < 10; ++i) {
     cd74hct4067_set_output(&pd2, 9 - i);
     cd74hct4067_set_output(&led2, i);
+    delay_us(250);
     for (uint16_t j = 0; j < SAMPLES; ++j) {
+      delay_us(100);
       ads1252_read(&adc2, &x);
-      if (j >= DISCARD && x < 10000) {
+      if (j >= DISCARD) {
         acc += x;
       }
     }
@@ -162,8 +166,10 @@ int main(void) {
     for (uint16_t i = 0; i < 10; ++i) {
       cd74hct4067_set_output(&pd1, 9 - i);
       cd74hct4067_set_output(&led1, i);
+      delay_us(250);
       printf("0,%d,%ld", i, callibrations[i]);
       for (uint16_t j = 0; j < SAMPLES; ++j) {
+        delay_us(100);
         ads1252_read(&adc1, &reading);
         if (j >= DISCARD) {
           printf(",%ld", reading);
@@ -171,14 +177,16 @@ int main(void) {
       }
       printf("\n");
     }
-    delay_ms(1000);
     cd74hct4067_set_output(&led1, 11);
+    delay_ms(250);
 
     for (uint16_t i = 0; i < 10; ++i) {
       cd74hct4067_set_output(&pd2, 9 - i);
       cd74hct4067_set_output(&led2, i);
+      delay_us(250);
       printf("1,%d,%ld", i, callibrations[i + 10]);
       for (uint16_t j = 0; j < SAMPLES; ++j) {
+        delay_us(100);
         ads1252_read(&adc2, &reading);
         if (j >= DISCARD) {
           printf(",%ld", reading);
@@ -187,7 +195,7 @@ int main(void) {
       printf("\n");
     }
     cd74hct4067_set_output(&led2, 11);
-    delay_ms(1000);
+    delay_ms(250);
   }
 
   return 0;

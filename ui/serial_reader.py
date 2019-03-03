@@ -67,7 +67,11 @@ class SerialDataSource(object):
         # Discard the first packet
         self.ser.readline().decode('ascii')
         while True:
-            line = self.ser.readline().decode('ascii')
+            line = ''
+            try:
+                line = self.ser.readline().decode('ascii')
+            except Exception:
+                continue
             if not line:
                 continue
             ints = line.split(',')
