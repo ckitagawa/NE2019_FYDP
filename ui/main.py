@@ -29,27 +29,29 @@ def process_packets(sdc):
     linedata = [0.0] * 100
     flush = False
     cnt = 0
+    xs = [0.0] * 10
+    ys = [0.0] * 10
     while True:
         if cnt == 0:
-            ardata = [0.0] * 100
+            ardata = [1.0] * 100
 
         packet = sdc.get_packet()
         if not packet:
             continue
-        packet = fix_bits(packet)
+        # packet = fix_bits(packet)
+        # print(packet.axis, packet.calibration_value, packet.data)
 
         # TODO(drousso): do requisite processing on the packet and write data
         # to ardata and linedata 10x10 array represented as a 100 element array.
         # to flush to the gui set flush = True after processing the packet.
-        x = mean(packet.data)
-        if packet.calibration_value != 0:
-            x /= packet.calibration_value
+        x = (packet.calibration_value - mean(
+            packet.data)) / packet.calibration_value
         if packet.axis == fiber_reading.Axis.X_AXIS:
             for i in range(0, 10):
-                ardata[10 * packet.index + i] += x
+                ardata[10 * packet.index + i] *= x
         elif packet.axis == fiber_reading.Axis.Y_AXIS:
             for i in range(0, 10):
-                ardata[i * 10 + packet.index] += x
+                ardata[i * 10 + packet.index] *= x
 
         cnt = (cnt + 1) % 20
         if cnt == 0:
