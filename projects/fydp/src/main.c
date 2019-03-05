@@ -138,7 +138,7 @@ int main(void) {
   int32_t acc = 0;
   for (uint16_t i = 0; i < 10; ++i) {
     acc = 0;
-    cd74hct4067_set_output(&pd1, 9 - i);
+    cd74hct4067_set_output(&pd1, i);
     cd74hct4067_set_output(&led1, i);
     delay_us(500);
     for (uint16_t j = 0; j < SAMPLES; ++j) {
@@ -153,7 +153,7 @@ int main(void) {
   cd74hct4067_set_output(&pd1, 11);
   for (uint16_t i = 0; i < 10; ++i) {
     acc = 0;
-    cd74hct4067_set_output(&pd2, 9 - i);
+    cd74hct4067_set_output(&pd2, i);
     cd74hct4067_set_output(&led2, i);
     delay_us(500);
     for (uint16_t j = 0; j < SAMPLES; ++j) {
