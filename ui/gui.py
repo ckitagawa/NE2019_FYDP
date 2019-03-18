@@ -6,7 +6,7 @@ Created on Tue Jan 15 20:17:45 2019
 """
 import matplotlib
 matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 import matplotlib.animation as animation
 from matplotlib import style
@@ -46,19 +46,18 @@ def getData():
     ardata = np.asarray(np.load("ardata.pkl")).reshape(10, 10)
     linedata = np.asarray(np.load("linedata.pkl")).reshape(10, 10)
     """
-    
+
     ####David's Changes
     ardata = np.asarray(np.load("ardata.pkl"))
     linedata = np.asarray(np.load("linedata.pkl"))
     ####End David's Changes
-    
+
     return ardata, linedata
 
 
 def animate(i):
     ardata, linedata = getData()
-    
-    
+
     ####Before David's Changes
     """
     #Array data
@@ -73,58 +72,59 @@ def animate(i):
     a2.clear()
     a2.plot(linedata[0], linedata[1])
     """
-    
-    ####David's Changes
-    colourbarset=5 #I will add this thing to the data so it stabilizes. This needs to be chosen correctly
-    polydeg=4
-    
-    sumx=ardata[0:10]
-    sumy=ardata[10:]
-    
-    course_spacing=np.arange(10)
-    
-    polyx=np.polyfit(course_spacing, sumx,polydeg) 
-    polyy=np.polyfit(course_spacing, sumy,polydeg) 
-    
-    fine_spacing=np.arange(0,9.1,0.1)
-    len_fine_spacing=len(fine_spacing)
-    
-    polyX=np.polyval(polyx,fine_spacing)
-    polyY=np.polyval(polyy,fine_spacing)
 
-    NEWardata=np.ones((len_fine_spacing+2,len_fine_spacing+2))*colourbarset
-                      
+    ####David's Changes
+    colourbarset = 0.1  #I will add this thing to the data so it stabilizes. This needs to be chosen correctly
+    polydeg = 4
+
+    sumx = ardata[0:10]
+    sumy = ardata[10:]
+
+    course_spacing = np.arange(10)
+
+    polyx = np.polyfit(course_spacing, sumx, polydeg)
+    polyy = np.polyfit(course_spacing, sumy, polydeg)
+
+    fine_spacing = np.arange(0, 9.1, 0.1)
+    len_fine_spacing = len(fine_spacing)
+
+    polyX = np.polyval(polyx, fine_spacing)
+    polyY = np.polyval(polyy, fine_spacing)
+
+    NEWardata = np.ones(
+        (len_fine_spacing + 2, len_fine_spacing + 2)) * colourbarset
+
     for i in range(0, len_fine_spacing):
         for j in range(0, len_fine_spacing):
-            NEWardata[i+1][j+1]=polyX[i]
-            
+            NEWardata[i + 1][j + 1] = polyX[i]
+
     for i in range(0, len_fine_spacing):
         for j in range(0, len_fine_spacing):
-            NEWardata[i+1][j+1]*=polyY[j]
+            NEWardata[i + 1][j + 1] += polyY[j]
 
     #Array data
     a1.clear()
-    a1.set_xticks(np.arange(1, len_fine_spacing+1,10))
-    a1.set_yticks(np.arange(1, len_fine_spacing+1,10))
+    a1.set_xticks(np.arange(1, len_fine_spacing + 1, 10))
+    a1.set_yticks(np.arange(1, len_fine_spacing + 1, 10))
     a1.set_xticklabels(np.arange(10))
     a1.set_yticklabels(np.arange(10))
     a1.set_title("Force Map")
     im = a1.imshow(NEWardata)
     cbar.update_bruteforce(im)
-    
 
     #Line data
     #Can replace this plot with sumx, sumy, polyX and polyY for debugging
-    FFTDATA=abs(np.fft.fft(linedata))
-    FFTxaxis=np.arange(len(FFTDATA))
+    FFTDATA = abs(np.fft.fft(linedata))
+    FFTxaxis = np.arange(len(FFTDATA))
     a2.clear()
-    #a2.plot(FFTxaxis, FFTDATA)
-    
-    a2.plot(fine_spacing,polyX)
-    a2.plot(course_spacing,sumx)
-    a2.plot(fine_spacing,polyY)
-    a2.plot(course_spacing,sumy)
+    a2.plot(FFTxaxis, FFTDATA)
+
+    #a2.plot(fine_spacing, polyX)
+    #a2.plot(course_spacing, sumx)
+    #a2.plot(fine_spacing, polyY)
+    #a2.plot(course_spacing, sumy)
     ####End David's Changes
+
 
 class FYDPGUI(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -253,7 +253,7 @@ class GraphPage(tk.Frame):
 
         toolbar_frame = tk.Frame(self)
         toolbar_frame.grid(row=3, column=0, columnspan=3, sticky=tk.N + tk.W)
-        toolbar = NavigationToolbar2TkAgg(canvas, toolbar_frame)
+        toolbar = NavigationToolbar2Tk(canvas, toolbar_frame)
         toolbar.update()
 
         #        canvas._tkcanvas.grid(row=10, column=2, columnspan=2)

@@ -89,16 +89,12 @@ int main(void) {
   //   printf("%ld\n", res);
   // }
 
-  ADS1252Config adc2 = { .data = { .port = GPIO_PORT_A, .pin = 9 },
-                         .sclk = { .port = GPIO_PORT_A, .pin = 8 } };
   ADS1252Config adc1 = { .data = { .port = GPIO_PORT_A, .pin = 11 },
                          .sclk = { .port = GPIO_PORT_A, .pin = 10 } };
+  ADS1252Config adc2 = { .data = { .port = GPIO_PORT_A, .pin = 9 },
+                         .sclk = { .port = GPIO_PORT_A, .pin = 8 } };
   ads1252_init(&adc1);
-  ads1252_reset(&adc1);
   ads1252_init(&adc2);
-  ads1252_reset(&adc2);
-  ads1252_enable(&adc1);
-  ads1252_enable(&adc2);
   CD74HCT4067Config pd1 = { .s = { { .port = GPIO_PORT_C, .pin = 4 },
                                    { .port = GPIO_PORT_C, .pin = 5 },
                                    { .port = GPIO_PORT_C, .pin = 6 },
@@ -136,6 +132,8 @@ int main(void) {
   int32_t callibrations[20] = { 0 };
   int32_t x = 0;
   int32_t acc = 0;
+  ads1252_reset(&adc1);
+  ads1252_enable(&adc1);
   for (uint16_t i = 0; i < 10; ++i) {
     acc = 0;
     cd74hct4067_set_output(&pd1, i);
@@ -151,6 +149,8 @@ int main(void) {
   }
   cd74hct4067_set_output(&led1, 11);
   cd74hct4067_set_output(&pd1, 11);
+  ads1252_reset(&adc2);
+  ads1252_enable(&adc2);
   for (uint16_t i = 0; i < 10; ++i) {
     acc = 0;
     cd74hct4067_set_output(&pd2, i);
@@ -177,6 +177,7 @@ int main(void) {
       delay_us(500);
       printf("0,%d,%ld", i, callibrations[i]);
       for (uint16_t j = 0; j < SAMPLES; ++j) {
+        reading = 0;
         ads1252_read(&adc1, &reading);
         if (j >= DISCARD) {
           printf(",%ld", reading);
@@ -194,6 +195,7 @@ int main(void) {
       delay_us(500);
       printf("1,%d,%ld", i, callibrations[i + 10]);
       for (uint16_t j = 0; j < SAMPLES; ++j) {
+        reading = 0;
         ads1252_read(&adc2, &reading);
         if (j >= DISCARD) {
           printf(",%ld", reading);

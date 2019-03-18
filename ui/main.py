@@ -25,7 +25,7 @@ def fix_bits(packet):
 
 
 def process_packets(sdc):
-    
+
     #Previous Multiplication Algorithm
     """
     ardata = [0.0] * 100
@@ -69,24 +69,25 @@ def process_packets(sdc):
                 pickle.dump(linedata, output, pickle.HIGHEST_PROTOCOL)
             os.rename('tmp_linedata.pkl', 'linedata.pkl')
             flush = False
-    """  
-    
+    """
     #Processing for New Algorithm
     packet = sdc.get_packet()
-    numsamples=len(packet.data)
+    # if not packet:
+    ##     continue
+    ## numsamples = len(packet.data)
+    numsamples = 7
     ardata = [0.0] * 20
-    linedata = [0.0] * 20*numsamples
+    linedata = [0.0] * 20 * numsamples
     flush = False
     cnt = 0
     xs = [0.0] * 10
     ys = [0.0] * 10
     while True:
         if cnt == 0:
-            packet = sdc.get_packet()
             ardata = [1.0] * 20
-            linedata = [0.0] * 20*numsamples
+            linedata = [0.0] * 20 * numsamples
 
-        
+        packet = sdc.get_packet()
         if not packet:
             continue
         # packet = fix_bits(packet)
@@ -95,15 +96,18 @@ def process_packets(sdc):
         # TODO(drousso): do requisite processing on the packet and write data
         # to ardata and linedata 10x10 array represented as a 100 element array.
         # to flush to the gui set flush = True after processing the packet.
-        x = (packet.calibration_value - mean(
-            packet.data)) / packet.calibration_value
+        avg = mean(packet.data)
+        x = 0
+        # print(packet.axis, packet.index, packet.calibration_value, avg)
+        if avg < packet.calibration_value:
+            x = (packet.calibration_value - avg) / packet.calibration_value
         if packet.axis == fiber_reading.Axis.X_AXIS:
             ardata[packet.index] = x
         elif packet.axis == fiber_reading.Axis.Y_AXIS:
-            ardata[packet.index +10] = x
-        for i in range(0,numsamples):
-            linedata[cnt*numsamples+i]=packet.data[i]
-            
+            ardata[packet.index + 10] = x
+        for i in range(0, len(packet.data)):
+            linedata[cnt * numsamples + i] = packet.data[i]
+
         cnt = (cnt + 1) % 20
         if cnt == 0:
             flush = True
@@ -117,6 +121,7 @@ def process_packets(sdc):
                 pickle.dump(linedata, output, pickle.HIGHEST_PROTOCOL)
             os.rename('tmp_linedata.pkl', 'linedata.pkl')
             flush = False
+
 
 def main():
     device = serial_reader.select_device()

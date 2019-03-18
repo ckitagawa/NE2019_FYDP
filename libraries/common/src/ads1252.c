@@ -30,7 +30,8 @@ void ads1252_enable(const ADS1252Config *cfg) {
 
 void ads1252_reset(const ADS1252Config *cfg) {
   gpio_set_state(&cfg->sclk, GPIO_STATE_HIGH);
-  delay_us(720);
+  // delay_us(720);
+  delay_us(800);
 }
 
 inline static void prv_ads1252_sync(const ADS1252Config *cfg) {
@@ -40,10 +41,12 @@ inline static void prv_ads1252_sync(const ADS1252Config *cfg) {
   } while (rdy != GPIO_STATE_HIGH);
 }
 
+inline void wait_cycles(uint32_t n) {}
+
 void ads1252_read(const ADS1252Config *cfg, int32_t *buf) {
   // NOTE: This is super sketchy and should probably use SPI. However, this
   // implementation should emulate the behavior closely enough.
-  ads1252_enable(cfg);
+  // ads1252_enable(cfg);
   GpioState bit = GPIO_STATE_LOW;
   *buf = 0;
   prv_ads1252_sync(cfg);
@@ -51,15 +54,26 @@ void ads1252_read(const ADS1252Config *cfg, int32_t *buf) {
 
   for (uint16_t i = 0; i < NUM_ADS1252_BITS; ++i) {
     gpio_set_state(&cfg->sclk, GPIO_STATE_HIGH);
-    for (volatile uint16_t i = 0; i < 10; ++i)
+    for (volatile uint16_t j = 0; j < 10; ++j)
       ;
+    // j = 25;
+    // while (j-- > 0) {
+    //   __asm("");
+    // }
     *buf <<= 0x01;
     gpio_get_state(&cfg->data, &bit);
     *buf |= bit;
     gpio_set_state(&cfg->sclk, GPIO_STATE_LOW);
-    for (volatile uint16_t i = 0; i < 10; ++i)
+    for (volatile uint16_t j = 0; j < 10; ++j)
       ;
   }
+  gpio_set_state(&cfg->sclk, GPIO_STATE_HIGH);
+  for (volatile uint16_t j = 0; j < 10; ++j)
+    ;
+  gpio_set_state(&cfg->sclk, GPIO_STATE_LOW);
+  for (volatile uint16_t j = 0; j < 10; ++j)
+    ;
+  // Correct sign.
   *buf <<= 8;
   *buf >>= 8;
   if (*buf & 0x1000000) {
