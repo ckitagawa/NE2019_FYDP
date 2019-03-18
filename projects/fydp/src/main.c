@@ -168,7 +168,7 @@ int main(void) {
   cd74hct4067_set_output(&pd2, 11);
 
   // Read
-  int32_t reading = { 0 };
+  int32_t reading = 0;
   printf("Running\n");
   while (true) {
     for (uint16_t i = 0; i < 10; ++i) {
@@ -186,7 +186,7 @@ int main(void) {
     }
     cd74hct4067_set_output(&led1, 11);
     cd74hct4067_set_output(&pd1, 11);
-    delay_ms(250);
+    delay_ms(10);
 
     for (uint16_t i = 0; i < 10; ++i) {
       cd74hct4067_set_output(&pd2, i);
@@ -203,7 +203,7 @@ int main(void) {
     }
     cd74hct4067_set_output(&led2, 11);
     cd74hct4067_set_output(&pd2, 11);
-    delay_ms(250);
+    delay_ms(10);
   }
 
   return 0;
